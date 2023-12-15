@@ -1,0 +1,102 @@
+logdir: 'logs'
+device: 'cuda'
+output_dir: 'trained_model'
+gpus: '0,1,2,3'
+start_combine: 0 # gcn decoder
+num_iters: 100002
+pretrained_model_path: ''
+pretrained_normalnet: '/home/llx/normalnet/normalnet_bgno.pth'
+
+model:
+  train_delta: False
+  offset_loss: False
+  use_brock: False
+  only_z: True
+  is_smplx: False
+  z_offset: 2
+  use_origin: True
+  projection_mode: 'perspective'
+  ignore_index_files: ['data/face.txt', 'data/lh.txt', 'data/rh.txt', 'data/lf.txt', 'data/rf.txt'] # delta ingore index(including hands foot)
+
+  normalnet:
+    input_nc: 3
+    output_nc: 3
+
+  hgfilter:
+    num_stack: 4
+    num_hourglass: 2
+    hourglass_dim: 256
+    norm: 'group'
+    hg_down: 'no_down'
+    input_dim: 6
+
+  surfaceclassifier:
+    filter_channels: [257, 1024, 512, 256, 128, 1]
+    num_views: 1
+    no_residual: False
+
+  coma_linear:
+    layer: [1024, 1024, 1024, 64]
+
+  smpl_coma:
+    template_mesh: 'data/template_mesh.obj'
+    trained_model: 'data/smpl_decoder.pth'
+    require_grad: False
+
+  gcn_decoder:
+    template_mesh: 'data/template_mesh.obj'
+    num_input: 1024
+
+  smpl:
+    model_path: 'data/neutral_smpl_with_cocoplus_reg.pkl'
+    is_smplx: False
+
+optimizer:
+  name: 'RMSprop'
+  lr: 0.0005
+  weight_decay: 0.
+
+scheduler:
+  name: 'MultiStepLR'
+  milestones: [85000]
+  gamma: 0.1
+
+# 10
+# 40
+# 0.3
+# 3
+# 10
+# 0.5
+# 0.4
+
+train_delta: False
+
+loss_weight:
+  verts: 10
+  edge: 40
+  normal: 0.3
+  sdf: 5
+  gcn_sdf: 0
+  delta_norm: 5
+  laplacian: 20
+  p2s: 0
+  offset: 0
+  imgnormal: 0.5
+
+datasets:
+  DeepHuman:
+    data_path: '/home/llx/deephuman/dataset'
+    ratio: 0.9
+    index_file: 'data/shuffle_index.txt'
+    if_train: True
+    num_sample: 12000
+    sigma: 0.04
+    res: 512
+    uniform_sample: True
+    even_sample: False
+    with_normal: True
+    loader:
+      batch_size: 4
+      shuffle: True
+      num_workers: 4
+      drop_last: True

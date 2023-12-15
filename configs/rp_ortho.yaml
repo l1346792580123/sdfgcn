@@ -1,0 +1,109 @@
+logdir: 'logs'
+device: 'cuda'
+output_dir: 'trained_model'
+gpus: '0,1,2,3'
+start_combine: 0 # gcn decoder
+num_iters: 100002
+pretrained_model_path: ''
+pretrained_normalnet: '/home/llx/normalnet/normalnet_rp_ortho.pth'
+
+model:
+  train_delta: False
+  offset_loss: False
+  use_brock: False
+  only_z: True
+  is_smplx: True
+  z_offset: 1.5
+  projection_mode: 'orthogonal'
+  # ignore_index_files: ['data/face.txt', 'data/lh.txt', 'data/rh.txt', 'data/lf.txt', 'data/rf.txt'] # delta ingore index(including hands foot)
+  ignore_index_files: ['data/smplx_face.txt', 'data/smplx_lh.txt', 'data/smplx_rh.txt', 'data/smplx_lf.txt', 'data/smplx_rf.txt']
+
+  normalnet:
+    input_nc: 3
+    output_nc: 3
+
+  # embedder:
+  #   num_freqs: 10
+  #   max_freq_log2: 9
+
+  hgfilter:
+    num_stack: 4
+    num_hourglass: 2
+    hourglass_dim: 256
+    norm: 'group'
+    hg_down: 'no_down'
+    input_dim: 6
+
+  surfaceclassifier:
+    filter_channels: [257, 1024, 512, 256, 128, 1]
+    num_views: 1
+    no_residual: False
+
+  coma_linear:
+    layer: [1024, 1024, 1024, 128]
+
+  smpl_coma:
+    template_mesh: 'data/template_smplx.obj'
+    trained_model: 'data/smplx_decoder.pth'
+    require_grad: False
+    num_latent: 128
+    add_gn: False
+
+  gcn_decoder:
+    template_mesh: 'data/template_smplx.obj'
+    num_input: 1024
+    num_latent: 128
+    add_gn: False
+
+  smpl:
+    model_path: 'data/SMPLX_NEUTRAL.pkl'
+    use_pca: False
+
+optimizer:
+  name: 'RMSprop'
+  lr: 0.0005
+  weight_decay: 0.
+
+scheduler:
+  name: 'MultiStepLR'
+  milestones: [85000]
+  gamma: 0.1
+
+# 10
+# 40
+# 0.3
+# 3
+# 10
+# 0.5
+# 0.4
+
+train_delta: False
+
+loss_weight:
+  verts: 1
+  edge: 40
+  normal: 0.3
+  sdf: 5
+  gcn_sdf: 0
+  delta_norm: 5
+  laplacian: 20
+  p2s: 0
+  offset: 0
+  imgnormal: 0
+
+datasets:
+  RenderPeople:
+    data_path: '/home/llx/renderpeople/'
+    res: 512
+    num_sample: 12000
+    sigma: 0.04
+    num_view: 20
+    if_train: True
+    ratio: 0.9
+    projection_mode: 'ortho'
+    is_smplx: True
+    loader:
+      batch_size: 4
+      shuffle: True
+      num_workers: 4
+      drop_last: True
